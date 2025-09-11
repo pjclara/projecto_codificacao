@@ -1,4 +1,5 @@
 import GenericTable from '@/components/table/GenericTable';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import axios from 'axios';
+import { Save, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -155,20 +157,13 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                                         </div>
                                     </div>
                                     <DialogFooter>
-                                        <button
-                                            type="submit"
-                                            disabled={createLoading}
-                                            className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
-                                        >
-                                            {createLoading ? 'A criar...' : 'Criar'}
-                                        </button>
+                                        <Button type="submit" variant="success" size="default">
+                                            <Save size={16} /> Guardar
+                                        </Button>
                                         <DialogClose asChild>
-                                            <button
-                                                type="button"
-                                                className="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition hover:bg-gray-300"
-                                            >
-                                                Cancelar
-                                            </button>
+                                            <Button type="button" variant="secondary" size="default">
+                                                <XCircle size={16} /> Cancelar
+                                            </Button>
                                         </DialogClose>
                                     </DialogFooter>
                                 </form>
@@ -220,19 +215,13 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                                     </div>
                                 </div>
                                 <DialogFooter>
-                                    <button
-                                        type="submit"
-                                        className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
-                                    >
-                                        Save
-                                    </button>
+                                    <Button type="submit" variant="default" size="default">
+                                        <Save size={16} /> Guardar
+                                    </Button>
                                     <DialogClose asChild>
-                                        <button
-                                            type="button"
-                                            className="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition hover:bg-gray-300"
-                                        >
-                                            Cancel
-                                        </button>
+                                        <Button type="button" variant="secondary" size="default">
+                                            <XCircle size={16} /> Cancelar
+                                        </Button>
                                     </DialogClose>
                                 </DialogFooter>
                             </form>

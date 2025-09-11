@@ -1,4 +1,5 @@
 import GenericTable from '@/components/table/GenericTable';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import axios from 'axios';
+import { Save, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -124,20 +126,13 @@ const PermissionsIndex: React.FC<Props> = ({ permissions: initialPermissions }) 
                                         <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
                                     </div>
                                     <DialogFooter>
-                                        <button
-                                            type="submit"
-                                            disabled={createLoading}
-                                            className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
-                                        >
-                                            {createLoading ? 'A criar...' : 'Criar'}
-                                        </button>
+                                        <Button type="submit" variant="default" size="default">
+                                            <Save size={16} /> Guardar
+                                        </Button>
                                         <DialogClose asChild>
-                                            <button
-                                                type="button"
-                                                className="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition hover:bg-gray-300"
-                                            >
-                                                Cancelar
-                                            </button>
+                                            <Button type="button" variant="secondary" size="default">
+                                                <XCircle size={16} /> Cancelar
+                                            </Button>
                                         </DialogClose>
                                     </DialogFooter>
                                 </form>
@@ -154,7 +149,7 @@ const PermissionsIndex: React.FC<Props> = ({ permissions: initialPermissions }) 
                         ]}
                         actions={[
                             {
-                                label: 'Edit',
+                                label: 'Editar',
                                 onClick: (permission) => openEdit(permission),
                                 className: 'bg-blue-500 hover:bg-blue-600',
                             },
@@ -180,30 +175,13 @@ const PermissionsIndex: React.FC<Props> = ({ permissions: initialPermissions }) 
                                     <Input id="edit-name" name="name" value={form.name} onChange={handleChange} required autoFocus />
                                 </div>
                                 <DialogFooter>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
-                                    >
-                                        {loading ? 'A atualizar...' : 'Atualizar'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (editPermission) handleDelete(editPermission);
-                                            closeEdit();
-                                        }}
-                                        className="rounded bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700"
-                                    >
-                                        Apagar
-                                    </button>
+                                    <Button type="submit" variant="default" size="default">
+                                        <Save size={16} /> Guardar
+                                    </Button>
                                     <DialogClose asChild>
-                                        <button
-                                            type="button"
-                                            className="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition hover:bg-gray-300"
-                                        >
-                                            Cancelar
-                                        </button>
+                                        <Button type="button" variant="secondary" size="default">
+                                            <XCircle size={16} /> Cancelar
+                                        </Button>
                                     </DialogClose>
                                 </DialogFooter>
                             </form>

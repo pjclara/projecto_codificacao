@@ -1,58 +1,70 @@
+import { Button } from '@/components/ui/button';
+
 interface Column<T> {
-  key: keyof T | string;       // field name
-  label: string;               // column header
-  render?: (item: T) => React.ReactNode; // custom renderer
+    key: keyof T | string; // field name
+    label: string; // column header
+    render?: (item: T) => React.ReactNode; // custom renderer
 }
 
 interface Action<T> {
-  label: string;
-  onClick: (item: T) => void;
-  className?: string;
+    label: string;
+    onClick: (item: T) => void;
+    className?: string;
 }
 
 interface GenericTableProps<T> {
-  data: T[];
-  columns: Column<T>[];
-  actions?: Action<T>[];
+    data: T[];
+    columns: Column<T>[];
+    actions?: Action<T>[];
 }
 
 export default function GenericTable<T>({ data, columns, actions = [] }: GenericTableProps<T>) {
-  return (
-    <table className="min-w-full leading-normal">
-      <thead>
-        <tr className="bg-gray-100 text-sm leading-normal text-gray-700 uppercase">
-          {columns.map((col) => (
-            <th key={col.key as string} className="px-6 py-3 text-left">
-              {col.label}
-            </th>
-          ))}
-          {actions.length > 0 && <th className="px-6 py-3 text-center">Actions</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item, index) => (
-          <tr key={index} className="border-b border-gray-200 transition hover:bg-gray-50">
-            {columns.map((col) => (
-              <td key={col.key as string} className="px-6 py-3 whitespace-nowrap">
-                {col.render ? col.render(item) : (item as any)[col.key]}
-              </td>
-            ))}
-            {actions.length > 0 && (
-              <td className="px-6 py-3 text-center">
-                {actions.map((action, i) => (
-                  <button
-                    key={i}
-                    onClick={() => action.onClick(item)}
-                    className={`mr-2 rounded px-3 py-1 font-semibold text-white transition ${action.className || "bg-gray-500 hover:bg-gray-600"}`}
-                  >
-                    {action.label}
-                  </button>
+    return (
+        <table className="min-w-full leading-normal">
+            <thead>
+                <tr className="bg-gray-100 text-sm leading-normal text-gray-700 uppercase">
+                    {columns.map((col) => (
+                        <th key={col.key as string} className="px-6 py-3 text-left">
+                            {col.label}
+                        </th>
+                    ))}
+                    {actions.length > 0 && <th className="px-6 py-3 text-center">Actions</th>}
+                </tr>
+            </thead>
+            <tbody>
+                {data.map((item, index) => (
+                    <tr key={index} className="border-b border-gray-200 transition hover:bg-gray-50">
+                        {columns.map((col) => (
+                            <td key={col.key as string} className="px-6 py-3 whitespace-nowrap">
+                                {col.render ? col.render(item) : (item as any)[col.key]}
+                            </td>
+                        ))}
+                        {actions.length > 0 && (
+                            <td className="px-6 py-3 text-center">
+                                {actions.map((action, i) => {
+                                    let variant = "default";
+                                    if (action.label === "Apagar") {
+                                        variant = "destructive";
+                                    } else if (action.label === "Editar") {
+                                        variant = "secondary";
+                                    }
+                                    return (
+                                        <Button
+                                            key={i}
+                                            onClick={() => action.onClick(item)}
+                                            variant={variant}
+                                            size="sm"
+                                            className="mx-1"
+                                        >
+                                            {action.label}
+                                        </Button>
+                                    );
+                                })}
+                            </td>
+                        )}
+                    </tr>
                 ))}
-              </td>
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+            </tbody>
+        </table>
+    );
 }

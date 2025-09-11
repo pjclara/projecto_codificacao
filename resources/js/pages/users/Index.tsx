@@ -10,11 +10,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+
 import AppLayout from '@/layouts/app-layout';
 import axios from 'axios';
 import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Plus, Pencil, Trash2, User as UserIcon, Shield, Save, XCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface User {
     id: number;
@@ -197,19 +200,15 @@ const handleSubmit = async (e: React.FormEvent) => {
         <>
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
         <AppLayout breadcrumbs={[{ title: 'Utilizadores', href: '/users' }]}> 
-            <div className="mx-auto max-w-5xl py-8">
-                <h1 className="mb-6 text-3xl font-bold text-gray-800">Utilizadores</h1>
+            <div className="mx-auto max-w-7xl py-8 px-2 sm:px-4">
                 <div className="overflow-x-auto rounded-lg shadow">
                     <div className="mb-6 flex items-center justify-between">
                         <h1 className="text-3xl font-bold text-gray-800">Utilizadores</h1>
                         <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>
                             <DialogTrigger asChild>
-                                <button
-                                    className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
-                                    onClick={openCreate}
-                                >
-                                    Adicionar Utilizador
-                                </button>
+                                <Button onClick={openCreate} variant="default" size="default">
+                                    <Plus size={18} /> Adicionar Utilizador
+                                </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
@@ -266,35 +265,28 @@ const handleSubmit = async (e: React.FormEvent) => {
                                         </div>
                                     </div>
                                     <DialogFooter>
-                                        <button
-                                            type="submit"
-                                            disabled={createLoading}
-                                            className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
-                                        >
-                                            {createLoading ? 'A criar...' : 'Criar'}
-                                        </button>
+                                        <Button type="submit" disabled={createLoading} variant="default" size="default">
+                                            {createLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} {createLoading ? 'A criar...' : 'Criar'}
+                                        </Button>
                                         <DialogClose asChild>
-                                            <button
-                                                type="button"
-                                                className="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition hover:bg-gray-300"
-                                            >
-                                                Cancelar
-                                            </button>
+                                            <Button type="button" variant="secondary" size="default">
+                                                <XCircle size={16} /> Cancelar
+                                            </Button>
                                         </DialogClose>
                                     </DialogFooter>
                                 </form>
                             </DialogContent>
                         </Dialog>
                     </div>
-                    <table className="min-w-full leading-normal">
+                    <table className="w-full min-w-[700px] sm:min-w-[900px] md:min-w-[1100px] leading-normal text-sm">
                         <thead>
                             <tr className="bg-gray-100 text-sm leading-normal text-gray-700 uppercase dark:bg-gray-800 dark:text-gray-200">
-                                <th className="px-6 py-3 text-left">Nome</th>
-                                <th className="px-6 py-3 text-left">Email</th>
-                                <th className="px-6 py-3 text-left">Data de Criação</th>
-                                <th className="px-6 py-3 text-left">Roles</th>
-                                <th className="px-6 py-3 text-left">Permissões</th>
-                                <th className="px-6 py-3 text-center">Ações</th>
+                                <th className="px-3 py-3 text-left whitespace-nowrap">Nome</th>
+                                <th className="px-3 py-3 text-left whitespace-nowrap">Email</th>
+                                <th className="px-3 py-3 text-left whitespace-nowrap">Data de Criação</th>
+                                <th className="px-3 py-3 text-left whitespace-nowrap">Roles</th>
+                                <th className="px-3 py-3 text-left whitespace-nowrap">Permissões</th>
+                                <th className="px-3 py-3 text-center whitespace-nowrap">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -303,20 +295,20 @@ const handleSubmit = async (e: React.FormEvent) => {
                                     key={user.id}
                                     className="border-b border-gray-200 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                                 >
-                                    <td className="px-6 py-3 whitespace-nowrap">{user.name}</td>
-                                    <td className="px-6 py-3 whitespace-nowrap">{user.email}</td>
-                                    <td className="px-6 py-3 whitespace-nowrap">{user.created_at.slice(0, 10)}</td>
-                                    <td className="px-6 py-3 whitespace-nowrap">
+                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[180px]">{user.name}</td>
+                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[200px]">{user.email}</td>
+                                    <td className="px-3 py-3 whitespace-nowrap">{user.created_at.slice(0, 10)}</td>
+                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[180px]">
                                         {/* Listar roles do utilizador */}
                                         {/* Supondo que cada utilizador tem uma propriedade roles que é um array de strings */}
                                         {user.roles ? user.roles.map(r => r.name).join(', ') : 'N/A'}
                                     </td>
-                                    <td className="px-6 py-3 whitespace-nowrap">
+                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[220px]">
                                         {/* Listar permissões do utilizador */}
                                         {/* Supondo que cada utilizador tem uma propriedade permissions que é um array de strings */}
                                         {user.permissions ? user.permissions.map(p => p.name).join(', ') : 'N/A'}
                                     </td>
-                                    <td className="px-6 py-3 text-center">
+                                    <td className="px-3 py-3 text-center whitespace-nowrap">
                                         <Dialog
                                             modal={false}
                                             open={editOpen && editUser?.id === user.id}
@@ -325,12 +317,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                                             }}
                                         >
                                             <DialogTrigger asChild>
-                                                <button
-                                                    className="mr-2 rounded bg-blue-500 px-3 py-1 font-semibold text-white transition hover:bg-blue-600"
-                                                    onClick={() => openEdit(user)}
-                                                >
-                                                    Editar
-                                                </button>
+                                                <Button onClick={() => openEdit(user)} variant="secondary" size="sm" className="mr-2">
+                                                    <Pencil size={16} /> Editar
+                                                </Button>
                                             </DialogTrigger>
                                             <DialogContent>
                                                 <DialogHeader>
@@ -378,30 +367,21 @@ const handleSubmit = async (e: React.FormEvent) => {
                                                         </div>
                                                     </div>
                                                     <DialogFooter>
-                                                        <button
-                                                            type="submit"
-                                                            className="rounded bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700"
-                                                        >
-                                                            Guardar
-                                                        </button>
+                                                        <Button type="submit" variant="default" size="default">
+                                                            <Save size={16} /> Guardar
+                                                        </Button>
                                                         <DialogClose asChild>
-                                                            <button
-                                                                type="button"
-                                                                className="rounded bg-gray-200 px-4 py-2 font-semibold text-gray-800 transition hover:bg-gray-300"
-                                                            >
-                                                                Cancelar
-                                                            </button>
+                                                            <Button type="button" variant="secondary" size="default">
+                                                                <XCircle size={16} /> Cancelar
+                                                            </Button>
                                                         </DialogClose>
                                                     </DialogFooter>
                                                 </form>
                                             </DialogContent>
                                         </Dialog>
-                                        <button
-                                            className="rounded bg-red-500 px-3 py-1 font-semibold text-white transition hover:bg-red-600"
-                                            onClick={() => handleDelete(user)}
-                                        >
-                                            Apagar
-                                        </button>
+                                        <Button onClick={() => handleDelete(user)} variant="destructive" size="sm">
+                                            <Trash2 size={16} /> Apagar
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}

@@ -311,6 +311,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                                         {/* Supondo que cada utilizador tem uma propriedade roles que é um array de strings */}
                                         {user.roles ? user.roles.map(r => r.name).join(', ') : 'N/A'}
                                     </td>
+                                    <td className="px-6 py-3 whitespace-nowrap">
+                                        {/* Listar permissões do utilizador */}
+                                        {/* Supondo que cada utilizador tem uma propriedade permissions que é um array de strings */}
+                                        {user.permissions ? user.permissions.map(p => p.name).join(', ') : 'N/A'}
+                                    </td>
                                     <td className="px-6 py-3 text-center">
                                         <Dialog
                                             modal={false}

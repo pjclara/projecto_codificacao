@@ -12,9 +12,13 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::with('roles', 'permissions')->get();
+        $roles = \Spatie\Permission\Models\Role::all();
+        $permissions = \Spatie\Permission\Models\Permission::all();
         return Inertia::render('users/Index', [
-            'users' => $users
+            'users' => $users,
+            'roles' => $roles,
+            'permissions' => $permissions,
         ]);
     }
 
@@ -24,6 +28,14 @@ class UserController extends Controller
         return response([
             'user' => $user,
             'message' => 'Utilizador criado com sucesso!'
+        ]);
+    }
+
+    // show()
+    public function show(User $user)
+    {
+        return response([
+            'user' => $user->load('roles', 'permissions'),
         ]);
     }
 

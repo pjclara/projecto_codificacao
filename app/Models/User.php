@@ -39,6 +39,9 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
+    protected $append = ['role_ids', 'permission_ids'];
+
     protected function casts(): array
     {
         return [
@@ -46,4 +49,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    protected function getRoleIds(): array
+    {
+        return $this->roles->pluck('id')->toArray();
+    }
+
+    protected function getPermissionIds(): array
+    {
+        return $this->getAllPermissions()->pluck('id')->toArray();
+    }
+
+
 }

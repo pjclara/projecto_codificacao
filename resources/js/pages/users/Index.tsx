@@ -21,21 +21,35 @@ interface User {
     name: string;
     email: string;
     created_at: string;
+    roles: Role[]; // Added roles property
+    permissions: Permission[]; // Added permissions property
 }
 
+interface Role {
+    id: number;
+    name: string;
+}
+interface Permission {
+    id: number;
+    name: string;
+}
 interface Props {
     users: User[];
+    roles: Role[];
+    permissions: Permission[];
 }
 
-const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
+const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }) => {
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [editUser, setEditUser] = useState<User | null>(null);
     const [editOpen, setEditOpen] = useState(false);
     const [form, setForm] = useState({ name: '', email: '' });
+    const [editRoles, setEditRoles] = useState<number[]>([]);
+    const [editPermissions, setEditPermissions] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [createOpen, setCreateOpen] = useState(false);
-    const [createForm, setCreateForm] = useState({ name: '', email: '', password: '' });
+    const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', roles: [] as number[], permissions: [] as number[] });
     const [createLoading, setCreateLoading] = useState(false);
     // Função para apagar utilizador
     const handleDelete = async (user: User) => {
@@ -51,11 +65,16 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
     const openEdit = (user: User) => {
         setEditUser(user);
         setForm({ name: user.name, email: user.email });
+        setEditRoles(user.roles ? user.roles.map(r => r.id) : []);
+        // If you want to show permissions, you need to add permissions to User type and backend
+        setEditPermissions((user as any).permissions ? (user as any).permissions.map((p: Permission) => p.id) : []);
         setEditOpen(true);
     };
     const closeEdit = () => {
         setEditUser(null);
         setEditOpen(false);
+        setEditRoles([]);
+        setEditPermissions([]);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,13 +83,20 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
 
     // Submissão do formulário de edição usando fetch
     const openCreate = () => {
-        setCreateForm({ name: '', email: '', password: '' });
+        setCreateForm({ name: '', email: '', password: '', roles: [], permissions: [] });
         setCreateOpen(true);
     };
     const closeCreate = () => setCreateOpen(false);
 
+
     const handleCreateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreateForm({ ...createForm, [e.target.name]: e.target.value });
+    };
+    const handleCreateRoleChange = (id: number) => {
+        setCreateForm(f => ({ ...f, roles: f.roles.includes(id) ? f.roles.filter(rid => rid !== id) : [...f.roles, id] }));
+    };
+    const handleCreatePermissionChange = (id: number) => {
+        setCreateForm(f => ({ ...f, permissions: f.permissions.includes(id) ? f.permissions.filter(pid => pid !== id) : [...f.permissions, id] }));
     };
 
     const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -79,6 +105,14 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
         try {
             const response = await axios.post('/users', createForm);
             const newUser = response.data.user;
+            // associar roles
+            for (const roleId of createForm.roles) {
+                await axios.post(`/users/${newUser.id}/assign-role`, { role_id: roleId });
+            }
+            // associar permissões
+            for (const permId of createForm.permissions) {
+                await axios.post(`/users/${newUser.id}/give-permission`, { permission_id: permId });
+            }
             setUsers([newUser, ...users]);
             toast.success(response.data.message);
             closeCreate();
@@ -88,23 +122,76 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
             setCreateLoading(false);
         }
     };
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!editUser) return;
-        setLoading(true);
-        try {
-            const response = await axios.put(`/users/${editUser.id}`, form);
-            const updatedUser = response.data.user;
-            setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
-            toast.success(response.data.message);
-            closeEdit();
-        } catch (error) {
-            console.error('Erro ao atualizar o utilizador:', error);
-            toast.error('Ocorreu um erro ao atualizar o utilizador.');
-        } finally {
-            setLoading(false);
-        }
+    const handleEditRoleChange = (id: number) => {
+        setEditRoles((prev) => prev.includes(id) ? prev.filter(rid => rid !== id) : [...prev, id]);
     };
+    const handleEditPermissionChange = (id: number) => {
+        setEditPermissions((prev) => prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]);
+    };
+
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editUser) return;
+    setLoading(true);
+
+    try {
+        // 1. Update user basic info
+        const response = await axios.put(`/users/${editUser.id}`, form);
+        let updatedUser = response.data.user;
+
+        // 2. Calculate roles to sync
+        const currentRoleIds = editUser.roles?.map(r => r.id) ?? [];
+        const rolesToAdd = editRoles.filter(id => !currentRoleIds.includes(id));
+        const rolesToRemove = currentRoleIds.filter(id => !editRoles.includes(id));
+
+        // 3. Calculate permissions to sync
+        const currentPermissionIds = editUser.permissions?.map(p => p.id) ?? [];
+        const permsToAdd = editPermissions.filter(id => !currentPermissionIds.includes(id));
+        const permsToRemove = currentPermissionIds.filter(id => !editPermissions.includes(id));
+
+        // 4. Run role & permission updates in parallel
+        const updateResults = await Promise.allSettled([
+            ...rolesToAdd.map(roleId =>
+                axios.post(`/users/${editUser.id}/assign-role`, { role_id: roleId })
+            ),
+            ...rolesToRemove.map(roleId =>
+                axios.post(`/users/${editUser.id}/remove-role`, { role_id: roleId })
+            ),
+            ...permsToAdd.map(permId =>
+                axios.post(`/users/${editUser.id}/give-permission`, { permission_id: permId })
+            ),
+            ...permsToRemove.map(permId =>
+                axios.post(`/users/${editUser.id}/revoke-permission`, { permission_id: permId })
+            )
+        ]);
+
+        // 5. Check if any updates failed
+        const failed = updateResults.filter(r => r.status === "rejected");
+        if (failed.length > 0) {
+            console.warn(`Some role/permission updates failed:`, failed);
+            toast.warning(`${failed.length} update(s) failed, but the rest succeeded.`);
+        }
+
+        // 6. Optionally fetch fresh user (only if needed)
+        if (!updatedUser.roles || !updatedUser.permissions) {
+            const userResp = await axios.get(`/users/${editUser.id}`);
+            updatedUser = userResp.data.user;
+        }
+
+        // 7. Update state
+        setUsers(users.map(u => (u.id === updatedUser.id ? updatedUser : u)));
+
+        // 8. Success feedback
+        toast.success(response.data.message || "User updated successfully.");
+        closeEdit();
+    } catch (error) {
+        console.error("Error while updating user:", error);
+        toast.error("An error occurred while updating the user.");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     return (
         <>
@@ -156,6 +243,28 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
                                             required
                                         />
                                     </div>
+                                    <div>
+                                        <Label>Roles</Label>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {roles.map(r => (
+                                                <label key={r.id} className="flex items-center gap-1">
+                                                    <input type="checkbox" checked={createForm.roles.includes(r.id)} onChange={() => handleCreateRoleChange(r.id)} />
+                                                    {r.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label>Permissões</Label>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {permissions.map(p => (
+                                                <label key={p.id} className="flex items-center gap-1">
+                                                    <input type="checkbox" checked={createForm.permissions.includes(p.id)} onChange={() => handleCreatePermissionChange(p.id)} />
+                                                    {p.name}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
                                     <DialogFooter>
                                         <button
                                             type="submit"
@@ -183,6 +292,8 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
                                 <th className="px-6 py-3 text-left">Nome</th>
                                 <th className="px-6 py-3 text-left">Email</th>
                                 <th className="px-6 py-3 text-left">Data de Criação</th>
+                                <th className="px-6 py-3 text-left">Roles</th>
+                                <th className="px-6 py-3 text-left">Permissões</th>
                                 <th className="px-6 py-3 text-center">Ações</th>
                             </tr>
                         </thead>
@@ -195,6 +306,11 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
                                     <td className="px-6 py-3 whitespace-nowrap">{user.name}</td>
                                     <td className="px-6 py-3 whitespace-nowrap">{user.email}</td>
                                     <td className="px-6 py-3 whitespace-nowrap">{user.created_at.slice(0, 10)}</td>
+                                    <td className="px-6 py-3 whitespace-nowrap">
+                                        {/* Listar roles do utilizador */}
+                                        {/* Supondo que cada utilizador tem uma propriedade roles que é um array de strings */}
+                                        {user.roles ? user.roles.map(r => r.name).join(', ') : 'N/A'}
+                                    </td>
                                     <td className="px-6 py-3 text-center">
                                         <Dialog
                                             modal={false}
@@ -233,6 +349,28 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers }) => {
                                                             onChange={handleChange}
                                                             required
                                                         />
+                                                    </div>
+                                                    <div>
+                                                        <Label>Roles</Label>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {roles.map(r => (
+                                                                <label key={r.id} className="flex items-center gap-1">
+                                                                    <input type="checkbox" checked={editRoles.includes(r.id)} onChange={() => handleEditRoleChange(r.id)} />
+                                                                    {r.name}
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <Label>Permissões</Label>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {permissions.map(p => (
+                                                                <label key={p.id} className="flex items-center gap-1">
+                                                                    <input type="checkbox" checked={editPermissions.includes(p.id)} onChange={() => handleEditPermissionChange(p.id)} />
+                                                                    {p.name}
+                                                                </label>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                     <DialogFooter>
                                                         <button

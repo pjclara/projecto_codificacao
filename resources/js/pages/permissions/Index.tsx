@@ -64,7 +64,9 @@ const PermissionsIndex: React.FC<Props> = ({ permissions: initialPermissions }) 
             const response = await axios.post('/permissions', createForm);
             setPermissions([response.data.permission, ...permissions]);
             toast.success(response.data.message);
+            setCreateForm({ name: '' });
             setCreateOpen(false);
+
         } catch (error) {
             toast.error('Erro ao criar permissão.');
         } finally {

@@ -121,6 +121,7 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
             }
             setUsers([newUser, ...users]);
             toast.success(response.data.message);
+            setCreateForm({ name: '', email: '', password: '', roles: [], permissions: [] });
             closeCreate();
         } catch (error) {
             toast.error('Erro ao criar utilizador.');
@@ -181,6 +182,7 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
 
             // 8. Success feedback
             toast.success(response.data.message || 'User updated successfully.');
+            setEditUser(null);
             closeEdit();
         } catch (error) {
             console.error('Error while updating user:', error);

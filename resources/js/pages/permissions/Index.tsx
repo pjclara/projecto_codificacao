@@ -101,9 +101,8 @@ const PermissionsIndex: React.FC<Props> = ({ permissions: initialPermissions }) 
 
     return (
         <>
-            <ToastContainer />
             <AppLayout breadcrumbs={[{ title: 'Permissões', href: '/permissions' }]}>
-                <div className="mx-auto max-w-4xl py-8">
+                <div className="mx-auto max-w-7xl py-8 px-2 sm:px-4">
                     <div className="mb-6 flex items-center justify-between">
                         <h1 className="text-3xl font-bold text-gray-800">Permissões</h1>
                         <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>

@@ -11,13 +11,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+import GenericTable from '@/components/table/GenericTable';
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import axios from 'axios';
+import { Loader2, Plus, Save, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Plus, Pencil, Trash2, User as UserIcon, Shield, Save, XCircle, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface User {
     id: number;
@@ -68,7 +69,7 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
     const openEdit = (user: User) => {
         setEditUser(user);
         setForm({ name: user.name, email: user.email });
-        setEditRoles(user.roles ? user.roles.map(r => r.id) : []);
+        setEditRoles(user.roles ? user.roles.map((r) => r.id) : []);
         // If you want to show permissions, you need to add permissions to User type and backend
         setEditPermissions((user as any).permissions ? (user as any).permissions.map((p: Permission) => p.id) : []);
         setEditOpen(true);
@@ -91,15 +92,17 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
     };
     const closeCreate = () => setCreateOpen(false);
 
-
     const handleCreateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCreateForm({ ...createForm, [e.target.name]: e.target.value });
     };
     const handleCreateRoleChange = (id: number) => {
-        setCreateForm(f => ({ ...f, roles: f.roles.includes(id) ? f.roles.filter(rid => rid !== id) : [...f.roles, id] }));
+        setCreateForm((f) => ({ ...f, roles: f.roles.includes(id) ? f.roles.filter((rid) => rid !== id) : [...f.roles, id] }));
     };
     const handleCreatePermissionChange = (id: number) => {
-        setCreateForm(f => ({ ...f, permissions: f.permissions.includes(id) ? f.permissions.filter(pid => pid !== id) : [...f.permissions, id] }));
+        setCreateForm((f) => ({
+            ...f,
+            permissions: f.permissions.includes(id) ? f.permissions.filter((pid) => pid !== id) : [...f.permissions, id],
+        }));
     };
 
     const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -126,128 +129,211 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
         }
     };
     const handleEditRoleChange = (id: number) => {
-        setEditRoles((prev) => prev.includes(id) ? prev.filter(rid => rid !== id) : [...prev, id]);
+        setEditRoles((prev) => (prev.includes(id) ? prev.filter((rid) => rid !== id) : [...prev, id]));
     };
     const handleEditPermissionChange = (id: number) => {
-        setEditPermissions((prev) => prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]);
+        setEditPermissions((prev) => (prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]));
     };
 
-const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editUser) return;
-    setLoading(true);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editUser) return;
+        setLoading(true);
 
-    try {
-        // 1. Update user basic info
-        const response = await axios.put(`/users/${editUser.id}`, form);
-        let updatedUser = response.data.user;
+        try {
+            // 1. Update user basic info
+            const response = await axios.put(`/users/${editUser.id}`, form);
+            let updatedUser = response.data.user;
 
-        // 2. Calculate roles to sync
-        const currentRoleIds = editUser.roles?.map(r => r.id) ?? [];
-        const rolesToAdd = editRoles.filter(id => !currentRoleIds.includes(id));
-        const rolesToRemove = currentRoleIds.filter(id => !editRoles.includes(id));
+            // 2. Calculate roles to sync
+            const currentRoleIds = editUser.roles?.map((r) => r.id) ?? [];
+            const rolesToAdd = editRoles.filter((id) => !currentRoleIds.includes(id));
+            const rolesToRemove = currentRoleIds.filter((id) => !editRoles.includes(id));
 
-        // 3. Calculate permissions to sync
-        const currentPermissionIds = editUser.permissions?.map(p => p.id) ?? [];
-        const permsToAdd = editPermissions.filter(id => !currentPermissionIds.includes(id));
-        const permsToRemove = currentPermissionIds.filter(id => !editPermissions.includes(id));
+            // 3. Calculate permissions to sync
+            const currentPermissionIds = editUser.permissions?.map((p) => p.id) ?? [];
+            const permsToAdd = editPermissions.filter((id) => !currentPermissionIds.includes(id));
+            const permsToRemove = currentPermissionIds.filter((id) => !editPermissions.includes(id));
 
-        // 4. Run role & permission updates in parallel
-        const updateResults = await Promise.allSettled([
-            ...rolesToAdd.map(roleId =>
-                axios.post(`/users/${editUser.id}/assign-role`, { role_id: roleId })
-            ),
-            ...rolesToRemove.map(roleId =>
-                axios.post(`/users/${editUser.id}/remove-role`, { role_id: roleId })
-            ),
-            ...permsToAdd.map(permId =>
-                axios.post(`/users/${editUser.id}/give-permission`, { permission_id: permId })
-            ),
-            ...permsToRemove.map(permId =>
-                axios.post(`/users/${editUser.id}/revoke-permission`, { permission_id: permId })
-            )
-        ]);
+            // 4. Run role & permission updates in parallel
+            const updateResults = await Promise.allSettled([
+                ...rolesToAdd.map((roleId) => axios.post(`/users/${editUser.id}/assign-role`, { role_id: roleId })),
+                ...rolesToRemove.map((roleId) => axios.post(`/users/${editUser.id}/remove-role`, { role_id: roleId })),
+                ...permsToAdd.map((permId) => axios.post(`/users/${editUser.id}/give-permission`, { permission_id: permId })),
+                ...permsToRemove.map((permId) => axios.post(`/users/${editUser.id}/revoke-permission`, { permission_id: permId })),
+            ]);
 
-        // 5. Check if any updates failed
-        const failed = updateResults.filter(r => r.status === "rejected");
-        if (failed.length > 0) {
-            console.warn(`Some role/permission updates failed:`, failed);
-            toast.warning(`${failed.length} update(s) failed, but the rest succeeded.`);
+            // 5. Check if any updates failed
+            const failed = updateResults.filter((r) => r.status === 'rejected');
+            if (failed.length > 0) {
+                console.warn(`Some role/permission updates failed:`, failed);
+                toast.warning(`${failed.length} update(s) failed, but the rest succeeded.`);
+            }
+
+            // 6. Optionally fetch fresh user (only if needed)
+            if (!updatedUser.roles || !updatedUser.permissions) {
+                const userResp = await axios.get(`/users/${editUser.id}`);
+                updatedUser = userResp.data.user;
+            }
+
+            // 7. Update state
+            setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+
+            // 8. Success feedback
+            toast.success(response.data.message || 'User updated successfully.');
+            closeEdit();
+        } catch (error) {
+            console.error('Error while updating user:', error);
+            toast.error('An error occurred while updating the user.');
+        } finally {
+            setLoading(false);
         }
-
-        // 6. Optionally fetch fresh user (only if needed)
-        if (!updatedUser.roles || !updatedUser.permissions) {
-            const userResp = await axios.get(`/users/${editUser.id}`);
-            updatedUser = userResp.data.user;
-        }
-
-        // 7. Update state
-        setUsers(users.map(u => (u.id === updatedUser.id ? updatedUser : u)));
-
-        // 8. Success feedback
-        toast.success(response.data.message || "User updated successfully.");
-        closeEdit();
-    } catch (error) {
-        console.error("Error while updating user:", error);
-        toast.error("An error occurred while updating the user.");
-    } finally {
-        setLoading(false);
-    }
-};
-
+    };
 
     return (
         <>
-        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
-        <AppLayout breadcrumbs={[{ title: 'Utilizadores', href: '/users' }]}> 
-            <div className="mx-auto max-w-7xl py-8 px-2 sm:px-4">
-                <div className="overflow-x-auto rounded-lg shadow">
-                    <div className="mb-6 flex items-center justify-between">
-                        <h1 className="text-3xl font-bold text-gray-800">Utilizadores</h1>
-                        <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>
-                            <DialogTrigger asChild>
-                                <Button onClick={openCreate} variant="default" size="default">
-                                    <Plus size={18} /> Adicionar Utilizador
-                                </Button>
-                            </DialogTrigger>
+            <AppLayout breadcrumbs={[{ title: 'Utilizadores', href: '/users' }]}>
+                <div className="mx-auto max-w-7xl px-2 py-8 sm:px-4">
+                    <div className="overflow-x-auto rounded-lg shadow">
+                        <div className="mb-6 flex items-center justify-between">
+                            <h1 className="text-3xl font-bold text-gray-800">Utilizadores</h1>
+                            <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>
+                                <DialogTrigger asChild>
+                                    <Button onClick={openCreate} variant="default" size="default">
+                                        <Plus size={18} /> Adicionar Utilizador
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Novo Utilizador</DialogTitle>
+                                        <DialogDescription>Preencha os dados para criar um novo utilizador.</DialogDescription>
+                                    </DialogHeader>
+                                    <form onSubmit={handleCreateSubmit} className="mt-4 space-y-4">
+                                        <div>
+                                            <Label htmlFor="create-name">Nome</Label>
+                                            <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="create-email">Email</Label>
+                                            <Input
+                                                id="create-email"
+                                                name="email"
+                                                type="email"
+                                                value={createForm.email}
+                                                onChange={handleCreateChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="create-password">Password</Label>
+                                            <Input
+                                                id="create-password"
+                                                name="password"
+                                                type="password"
+                                                value={createForm.password}
+                                                onChange={handleCreateChange}
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Roles</Label>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {roles.map((r) => (
+                                                    <label key={r.id} className="flex items-center gap-1">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={createForm.roles.includes(r.id)}
+                                                            onChange={() => handleCreateRoleChange(r.id)}
+                                                        />
+                                                        {r.name}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <Label>Permissões</Label>
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {permissions.map((p) => (
+                                                    <label key={p.id} className="flex items-center gap-1">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={createForm.permissions.includes(p.id)}
+                                                            onChange={() => handleCreatePermissionChange(p.id)}
+                                                        />
+                                                        {p.name}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button type="submit" disabled={createLoading} variant="default" size="default">
+                                                {createLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}{' '}
+                                                {createLoading ? 'A criar...' : 'Criar'}
+                                            </Button>
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="secondary" size="default">
+                                                    <XCircle size={16} /> Cancelar
+                                                </Button>
+                                            </DialogClose>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <GenericTable
+                            data={users}
+                            columns={[
+                                { key: 'name', label: 'nome' },
+                                { key: 'email', label: 'email' },
+                                { key: 'created_at', label: 'data de criação', render: (user: User) => user.created_at.slice(0, 10) },
+                                {
+                                    key: 'roles',
+                                    label: 'roles',
+                                    render: (user: User) => (user.roles ? user.roles.map((r) => r.name).join(', ') : 'N/A'),
+                                },
+                                {
+                                    key: 'permissions',
+                                    label: 'permissions',
+                                    render: (user: User) => (user.permissions ? user.permissions.map((p) => p.name).join(', ') : 'N/A'),
+                                },
+                            ]}
+                            actions={[
+                                { label: 'Editar', onClick: (user) => openEdit(user), className: 'bg-blue-500 hover:bg-blue-600' },
+                                { label: 'Apagar', onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
+                            ]}
+                        />
+
+                        <Dialog
+                            modal={false}
+                            open={editOpen}
+                            onOpenChange={(open) => {
+                                if (!open) closeEdit();
+                            }}
+                        >
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Novo Utilizador</DialogTitle>
-                                    <DialogDescription>Preencha os dados para criar um novo utilizador.</DialogDescription>
+                                    <DialogTitle>Editar Utilizador</DialogTitle>
+                                    <DialogDescription>Atualize os dados do utilizador.</DialogDescription>
                                 </DialogHeader>
-                                <form onSubmit={handleCreateSubmit} className="mt-4 space-y-4">
+                                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                                     <div>
-                                        <Label htmlFor="create-name">Nome</Label>
-                                        <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
+                                        <Label htmlFor="name">Nome</Label>
+                                        <Input id="name" name="name" value={form.name} onChange={handleChange} required />
                                     </div>
                                     <div>
-                                        <Label htmlFor="create-email">Email</Label>
-                                        <Input
-                                            id="create-email"
-                                            name="email"
-                                            type="email"
-                                            value={createForm.email}
-                                            onChange={handleCreateChange}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="create-password">Password</Label>
-                                        <Input
-                                            id="create-password"
-                                            name="password"
-                                            type="password"
-                                            value={createForm.password}
-                                            onChange={handleCreateChange}
-                                            required
-                                        />
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
                                     </div>
                                     <div>
                                         <Label>Roles</Label>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {roles.map(r => (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {roles.map((r) => (
                                                 <label key={r.id} className="flex items-center gap-1">
-                                                    <input type="checkbox" checked={createForm.roles.includes(r.id)} onChange={() => handleCreateRoleChange(r.id)} />
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={editRoles.includes(r.id)}
+                                                        onChange={() => handleEditRoleChange(r.id)}
+                                                    />
                                                     {r.name}
                                                 </label>
                                             ))}
@@ -255,18 +341,22 @@ const handleSubmit = async (e: React.FormEvent) => {
                                     </div>
                                     <div>
                                         <Label>Permissões</Label>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {permissions.map(p => (
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {permissions.map((p) => (
                                                 <label key={p.id} className="flex items-center gap-1">
-                                                    <input type="checkbox" checked={createForm.permissions.includes(p.id)} onChange={() => handleCreatePermissionChange(p.id)} />
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={editPermissions.includes(p.id)}
+                                                        onChange={() => handleEditPermissionChange(p.id)}
+                                                    />
                                                     {p.name}
                                                 </label>
                                             ))}
                                         </div>
                                     </div>
                                     <DialogFooter>
-                                        <Button type="submit" disabled={createLoading} variant="default" size="default">
-                                            {createLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} {createLoading ? 'A criar...' : 'Criar'}
+                                        <Button type="submit" variant="default" size="default">
+                                            <Save size={16} /> Guardar
                                         </Button>
                                         <DialogClose asChild>
                                             <Button type="button" variant="secondary" size="default">
@@ -278,118 +368,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                             </DialogContent>
                         </Dialog>
                     </div>
-                    <table className="w-full min-w-[700px] sm:min-w-[900px] md:min-w-[1100px] leading-normal text-sm">
-                        <thead>
-                            <tr className="bg-gray-100 text-sm leading-normal text-gray-700 uppercase dark:bg-gray-800 dark:text-gray-200">
-                                <th className="px-3 py-3 text-left whitespace-nowrap">Nome</th>
-                                <th className="px-3 py-3 text-left whitespace-nowrap">Email</th>
-                                <th className="px-3 py-3 text-left whitespace-nowrap">Data de Criação</th>
-                                <th className="px-3 py-3 text-left whitespace-nowrap">Roles</th>
-                                <th className="px-3 py-3 text-left whitespace-nowrap">Permissões</th>
-                                <th className="px-3 py-3 text-center whitespace-nowrap">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map((user) => (
-                                <tr
-                                    key={user.id}
-                                    className="border-b border-gray-200 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-                                >
-                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[180px]">{user.name}</td>
-                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[200px]">{user.email}</td>
-                                    <td className="px-3 py-3 whitespace-nowrap">{user.created_at.slice(0, 10)}</td>
-                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[180px]">
-                                        {/* Listar roles do utilizador */}
-                                        {/* Supondo que cada utilizador tem uma propriedade roles que é um array de strings */}
-                                        {user.roles ? user.roles.map(r => r.name).join(', ') : 'N/A'}
-                                    </td>
-                                    <td className="px-3 py-3 whitespace-nowrap break-words max-w-[220px]">
-                                        {/* Listar permissões do utilizador */}
-                                        {/* Supondo que cada utilizador tem uma propriedade permissions que é um array de strings */}
-                                        {user.permissions ? user.permissions.map(p => p.name).join(', ') : 'N/A'}
-                                    </td>
-                                    <td className="px-3 py-3 text-center whitespace-nowrap">
-                                        <Dialog
-                                            modal={false}
-                                            open={editOpen && editUser?.id === user.id}
-                                            onOpenChange={(open) => {
-                                                if (!open) closeEdit();
-                                            }}
-                                        >
-                                            <DialogTrigger asChild>
-                                                <Button onClick={() => openEdit(user)} variant="secondary" size="sm" className="mr-2">
-                                                    <Pencil size={16} /> Editar
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Editar Utilizador</DialogTitle>
-                                                    <DialogDescription>
-                                                        Altere os dados do utilizador e clique em "Guardar" para atualizar.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                                                    <div>
-                                                        <Label htmlFor="name">Nome</Label>
-                                                        <Input id="name" name="name" value={form.name} onChange={handleChange} required />
-                                                    </div>
-                                                    <div>
-                                                        <Label htmlFor="email">Email</Label>
-                                                        <Input
-                                                            id="email"
-                                                            name="email"
-                                                            type="email"
-                                                            value={form.email}
-                                                            onChange={handleChange}
-                                                            required
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Label>Roles</Label>
-                                                        <div className="flex flex-wrap gap-2 mt-2">
-                                                            {roles.map(r => (
-                                                                <label key={r.id} className="flex items-center gap-1">
-                                                                    <input type="checkbox" checked={editRoles.includes(r.id)} onChange={() => handleEditRoleChange(r.id)} />
-                                                                    {r.name}
-                                                                </label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <Label>Permissões</Label>
-                                                        <div className="flex flex-wrap gap-2 mt-2">
-                                                            {permissions.map(p => (
-                                                                <label key={p.id} className="flex items-center gap-1">
-                                                                    <input type="checkbox" checked={editPermissions.includes(p.id)} onChange={() => handleEditPermissionChange(p.id)} />
-                                                                    {p.name}
-                                                                </label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <DialogFooter>
-                                                        <Button type="submit" variant="default" size="default">
-                                                            <Save size={16} /> Guardar
-                                                        </Button>
-                                                        <DialogClose asChild>
-                                                            <Button type="button" variant="secondary" size="default">
-                                                                <XCircle size={16} /> Cancelar
-                                                            </Button>
-                                                        </DialogClose>
-                                                    </DialogFooter>
-                                                </form>
-                                            </DialogContent>
-                                        </Dialog>
-                                        <Button onClick={() => handleDelete(user)} variant="destructive" size="sm">
-                                            <Trash2 size={16} /> Apagar
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                 </div>
-            </div>
-        </AppLayout>
+            </AppLayout>
         </>
     );
 };

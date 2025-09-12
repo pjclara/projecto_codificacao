@@ -8,12 +8,15 @@ import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Users, Shield } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const platformNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
     },
+];
+
+const settingsNavItems: NavItem[] = [
     {
         title: 'Utilizadores',
         href: '/users',
@@ -60,7 +63,8 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={platformNavItems} label="Platform" />
+                <NavMain items={settingsNavItems} label="Settings" />
             </SidebarContent>
 
             <SidebarFooter>

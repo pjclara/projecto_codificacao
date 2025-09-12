@@ -81,6 +81,7 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
             setRoles([response.data.role, ...roles]);
             toast.success(response.data.message);
             setCreateOpen(false);
+            setCreateForm({ name: '', permissions: [] }); // limpar o formulário após criação bem-sucedida
         } catch (error) {
             toast.error('Erro ao criar role.');
         } finally {
@@ -117,7 +118,6 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
 
     return (
         <>
-            <ToastContainer />
             <AppLayout breadcrumbs={[{ title: 'Roles', href: '/roles' }]}>
                 <div className="mx-auto py-8">
                     <div className="mb-6 flex items-center justify-between">
@@ -157,7 +157,7 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                                         </div>
                                     </div>
                                     <DialogFooter>
-                                        <Button type="submit" variant="success" size="default">
+                                        <Button type="submit" variant="default" size="default">
                                             <Save size={16} /> Guardar
                                         </Button>
                                         <DialogClose asChild>

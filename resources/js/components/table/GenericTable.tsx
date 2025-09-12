@@ -20,7 +20,7 @@ interface GenericTableProps<T> {
 
 export default function GenericTable<T>({ data, columns, actions = [] }: GenericTableProps<T>) {
     return (
-        <table className="min-w-full leading-normal">
+        <table className="w-full min-w-[700px] sm:min-w-[900px] md:min-w-[1100px] leading-normal text-sm">
             <thead>
                 <tr className="bg-gray-100 text-sm leading-normal text-gray-700 uppercase">
                     {columns.map((col) => (

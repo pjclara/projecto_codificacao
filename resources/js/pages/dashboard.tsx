@@ -4,14 +4,19 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
+
+
 
 export default function Dashboard() {
+    const { t } = useTranslation();
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('Dashboard'),
+            href: dashboard().url,
+        },
+    ];
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />

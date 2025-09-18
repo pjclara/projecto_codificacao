@@ -7,6 +7,10 @@ import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
 
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
+
 interface UserMenuContentProps {
     user: User;
 }
@@ -18,6 +22,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         cleanup();
         router.flushAll();
     };
+
+    const { t } = useTranslation();
 
     return (
         <>
@@ -31,7 +37,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <DropdownMenuItem asChild>
                     <Link className="block w-full" href={edit()} as="button" prefetch onClick={cleanup}>
                         <Settings className="mr-2" />
-                        Settings
+                        {t('Settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -39,7 +45,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             <DropdownMenuItem asChild>
                 <Link className="block w-full" href={logout()} as="button" onClick={handleLogout}>
                     <LogOut className="mr-2" />
-                    Log out
+                    {t('Log out')}
                 </Link>
             </DropdownMenuItem>
         </>

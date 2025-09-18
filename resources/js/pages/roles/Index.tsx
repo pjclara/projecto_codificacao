@@ -19,6 +19,10 @@ import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
+
 interface Permission {
     id: number;
     name: string;
@@ -116,6 +120,8 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
         }
     };
 
+    const { t } = useTranslation();
+
     return (
         <>
             <AppLayout breadcrumbs={[{ title: 'Roles', href: '/roles' }]}>
@@ -128,21 +134,21 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                                     className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
                                     onClick={() => setCreateOpen(true)}
                                 >
-                                    Adicionar Role
+                                    {t('Add role')}
                                 </button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Novo Role</DialogTitle>
-                                    <DialogDescription>Preencha os dados para criar um novo role.</DialogDescription>
+                                    <DialogTitle>{t('New Role')}</DialogTitle>
+                                    <DialogDescription>{t('Fill in the details to create a new role.')}</DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleCreateSubmit} className="mt-4 space-y-4">
                                     <div>
-                                        <Label htmlFor="create-name">Nome</Label>
+                                        <Label htmlFor="create-name">{t('Name')}</Label>
                                         <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
                                     </div>
                                     <div>
-                                        <Label>Permissões</Label>
+                                        <Label>{t('Permissions')}</Label>
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             {permissions.map((p) => (
                                                 <label key={p.id} className="flex items-center gap-1">
@@ -181,7 +187,7 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                             { label: 'Apagar', onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
                         ]}
                     />
-                    {/* Single reusable dialog */}
+                    {/* Single reusable dialog */}«
                     <Dialog
                         modal={false}
                         open={editOpen}

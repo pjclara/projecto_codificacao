@@ -20,6 +20,11 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
+
+
 interface User {
     id: number;
     name: string;
@@ -56,14 +61,16 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
     const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', roles: [] as number[], permissions: [] as number[] });
     const [createLoading, setCreateLoading] = useState(false);
     // Função para apagar utilizador
+    const { t } = useTranslation();
+
     const handleDelete = async (user: User) => {
-        if (!window.confirm(`Tem a certeza que deseja apagar o utilizador ${user.name}?`)) return;
+        if (!window.confirm(`${t('Are you sure you want to delete user')} ${user.name}?`)) return;
         try {
             await axios.delete(`/users/${user.id}`);
             setUsers(users.filter((u) => u.id !== user.id));
-            toast.success('Utilizador removido com sucesso!');
+            toast.success(t('User removed successfully!'));
         } catch (error) {
-            toast.error('Erro ao apagar utilizador.');
+            toast.error(t('Error deleting user.'));
         }
     };
     const openEdit = (user: User) => {
@@ -192,31 +199,32 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
         }
     };
 
+
     return (
         <>
-            <AppLayout breadcrumbs={[{ title: 'Utilizadores', href: '/users' }]}>
+            <AppLayout breadcrumbs={[{ title: t('Users'), href: '/users' }]}>
                 <div className="mx-auto max-w-7xl px-2 py-8 sm:px-4">
                     <div className="overflow-x-auto rounded-lg shadow">
                         <div className="mb-6 flex items-center justify-between">
-                            <h1 className="text-3xl font-bold text-gray-800">Utilizadores</h1>
+                            <h1 className="text-3xl font-bold text-gray-800">{t('Users')}</h1>
                             <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>
                                 <DialogTrigger asChild>
                                     <Button onClick={openCreate} variant="default" size="default">
-                                        <Plus size={18} /> Adicionar Utilizador
+                                        <Plus size={18} /> {t('user')}
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>Novo Utilizador</DialogTitle>
-                                        <DialogDescription>Preencha os dados para criar um novo utilizador.</DialogDescription>
+                                        <DialogTitle>{t('New User')}</DialogTitle>
+                                        <DialogDescription>{t('Fill in the details to create a new user.')}</DialogDescription>
                                     </DialogHeader>
                                     <form onSubmit={handleCreateSubmit} className="mt-4 space-y-4">
                                         <div>
-                                            <Label htmlFor="create-name">Nome</Label>
+                                            <Label htmlFor="create-name">{t('Name')}</Label>
                                             <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
                                         </div>
                                         <div>
-                                            <Label htmlFor="create-email">Email</Label>
+                                            <Label htmlFor="create-email">{t('Email')}</Label>
                                             <Input
                                                 id="create-email"
                                                 name="email"
@@ -238,7 +246,7 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
                                             />
                                         </div>
                                         <div>
-                                            <Label>Roles</Label>
+                                            <Label>{t('Roles')}</Label>
                                             <div className="mt-2 flex flex-wrap gap-2">
                                                 {roles.map((r) => (
                                                     <label key={r.id} className="flex items-center gap-1">
@@ -253,7 +261,7 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
                                             </div>
                                         </div>
                                         <div>
-                                            <Label>Permissões</Label>
+                                            <Label>{t('Permissions')}</Label>
                                             <div className="mt-2 flex flex-wrap gap-2">
                                                 {permissions.map((p) => (
                                                     <label key={p.id} className="flex items-center gap-1">
@@ -270,11 +278,11 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
                                         <DialogFooter>
                                             <Button type="submit" disabled={createLoading} variant="default" size="default">
                                                 {createLoading ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}{' '}
-                                                {createLoading ? 'A criar...' : 'Criar'}
+                                                {createLoading ? t('Creating...') : t('Create')}
                                             </Button>
                                             <DialogClose asChild>
                                                 <Button type="button" variant="secondary" size="default">
-                                                    <XCircle size={16} /> Cancelar
+                                                    <XCircle size={16} /> {t('Cancel')}
                                                 </Button>
                                             </DialogClose>
                                         </DialogFooter>
@@ -285,23 +293,23 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
                         <GenericTable
                             data={users}
                             columns={[
-                                { key: 'name', label: 'nome' },
-                                { key: 'email', label: 'email' },
-                                { key: 'created_at', label: 'data de criação', render: (user: User) => user.created_at.slice(0, 10) },
+                                { key: 'name', label: t('Name') },
+                                { key: 'email', label: t('Email') },
+                                { key: 'created_at', label: t('Creation Date'), render: (user: User) => user.created_at.slice(0, 10) },
                                 {
                                     key: 'roles',
-                                    label: 'roles',
+                                    label: t('Roles'),
                                     render: (user: User) => (user.roles ? user.roles.map((r) => r.name).join(', ') : 'N/A'),
                                 },
                                 {
                                     key: 'permissions',
-                                    label: 'permissions',
+                                    label: t('Permissions'),
                                     render: (user: User) => (user.permissions ? user.permissions.map((p) => p.name).join(', ') : 'N/A'),
                                 },
                             ]}
                             actions={[
-                                { label: 'Editar', onClick: (user) => openEdit(user), className: 'bg-blue-500 hover:bg-blue-600' },
-                                { label: 'Apagar', onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
+                                { label: 'Edit', onClick: (user) => openEdit(user), className: 'bg-blue-500 hover:bg-blue-600' },
+                                { label: 'Delete', onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
                             ]}
                         />
 
@@ -314,20 +322,20 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
                         >
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Editar Utilizador</DialogTitle>
-                                    <DialogDescription>Atualize os dados do utilizador.</DialogDescription>
+                                    <DialogTitle>{t('Edit User')}</DialogTitle>
+                                    <DialogDescription>{t('Update user details.')}</DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                                     <div>
-                                        <Label htmlFor="name">Nome</Label>
+                                        <Label htmlFor="name">{t('Name')}</Label>
                                         <Input id="name" name="name" value={form.name} onChange={handleChange} required />
                                     </div>
                                     <div>
-                                        <Label htmlFor="email">Email</Label>
+                                        <Label htmlFor="email">{t('Email')}</Label>
                                         <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
                                     </div>
                                     <div>
-                                        <Label>Roles</Label>
+                                        <Label>{t('Roles')}</Label>
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             {roles.map((r) => (
                                                 <label key={r.id} className="flex items-center gap-1">
@@ -358,11 +366,11 @@ const UsersIndex: React.FC<Props> = ({ users: initialUsers, roles, permissions }
                                     </div>
                                     <DialogFooter>
                                         <Button type="submit" variant="default" size="default">
-                                            <Save size={16} /> Guardar
+                                            <Save size={16} /> {t('Update')}
                                         </Button>
                                         <DialogClose asChild>
                                             <Button type="button" variant="secondary" size="default">
-                                                <XCircle size={16} /> Cancelar
+                                                <XCircle size={16} /> {t('Cancel')}
                                             </Button>
                                         </DialogClose>
                                     </DialogFooter>

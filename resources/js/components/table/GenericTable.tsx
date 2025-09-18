@@ -1,4 +1,7 @@
 import { Button } from '@/components/ui/button';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
 
 interface Column<T> {
     key: keyof T | string; // field name
@@ -19,6 +22,8 @@ interface GenericTableProps<T> {
 }
 
 export default function GenericTable<T>({ data, columns, actions = [] }: GenericTableProps<T>) {
+    const { t } = useTranslation();
+
     return (
         <table className="w-full min-w-[700px] sm:min-w-[900px] md:min-w-[1100px] leading-normal text-sm">
             <thead>
@@ -43,20 +48,20 @@ export default function GenericTable<T>({ data, columns, actions = [] }: Generic
                             <td className="px-6 py-3 text-center">
                                 {actions.map((action, i) => {
                                     let variant = "default";
-                                    if (action.label === "Apagar") {
+                                    if (action.label === "delete") {
                                         variant = "destructive";
-                                    } else if (action.label === "Editar") {
+                                    } else if (action.label === "edit") {
                                         variant = "secondary";
                                     }
                                     return (
                                         <Button
                                             key={i}
                                             onClick={() => action.onClick(item)}
-                                            variant={variant}
+                                            variant={variant.toLowerCase() as any}
                                             size="sm"
                                             className="mx-1"
                                         >
-                                            {action.label}
+                                            {t(action.label)}
                                         </Button>
                                     );
                                 })}

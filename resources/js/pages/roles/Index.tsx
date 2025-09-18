@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import axios from 'axios';
-import { Save, XCircle } from 'lucide-react';
+import { Plus, Save, XCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -122,30 +122,46 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
 
     const { t } = useTranslation();
 
+    // Unify dialog for create/edit
+    const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
+    const isDialogOpen = createOpen || editOpen;
+    const closeDialog = () => {
+        setCreateOpen(false);
+        closeEdit();
+    };
+    const handleDialogSubmit = dialogMode === 'create' ? handleCreateSubmit : handleSubmit;
+    const dialogForm = dialogMode === 'create' ? createForm : form;
+    const handleDialogChange = dialogMode === 'create' ? handleCreateChange : handleChange;
+    const handleDialogPermissionChange = dialogMode === 'create' ? handleCreatePermissionChange : handlePermissionChange;
+
+    function openCreate() {
+        setCreateForm({ name: '', permissions: [] });
+        setCreateOpen(true);
+    }
+
     return (
         <>
-            <AppLayout breadcrumbs={[{ title: 'Roles', href: '/roles' }]}>
+            <AppLayout breadcrumbs={[{ title: t('Roles'), href: '/roles' }]}> 
                 <div className="mx-auto py-8">
                     <div className="mb-6 flex items-center justify-between">
-                        <h1 className="text-3xl font-bold text-gray-800">Roles</h1>
-                        <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>
+                        <h1 className="text-3xl font-bold text-gray-800">{t('Roles')}</h1>
+                        <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); }} modal={false}>
                             <DialogTrigger asChild>
-                                <button
-                                    className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
-                                    onClick={() => setCreateOpen(true)}
-                                >
-                                    {t('Add role')}
-                                </button>
+                                    <Button onClick={() => { openCreate(); setDialogMode('create'); }} variant="default" size="default">
+                                        <Plus size={18} /> {t('Role')}
+                                    </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>{t('New Role')}</DialogTitle>
-                                    <DialogDescription>{t('Fill in the details to create a new role.')}</DialogDescription>
+                                    <DialogTitle>{dialogMode === 'create' ? t('New Role') : t('Edit Role')}</DialogTitle>
+                                    <DialogDescription>
+                                        {dialogMode === 'create' ? t('Fill in the details to create a new role.') : t('Update role and click "Save".')}
+                                    </DialogDescription>
                                 </DialogHeader>
-                                <form onSubmit={handleCreateSubmit} className="mt-4 space-y-4">
+                                <form onSubmit={handleDialogSubmit} className="mt-4 space-y-4">
                                     <div>
-                                        <Label htmlFor="create-name">{t('Name')}</Label>
-                                        <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
+                                        <Label htmlFor="name">{t('Name')}</Label>
+                                        <Input id="name" name="name" value={dialogForm.name} onChange={handleDialogChange} required />
                                     </div>
                                     <div>
                                         <Label>{t('Permissions')}</Label>
@@ -154,8 +170,8 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                                                 <label key={p.id} className="flex items-center gap-1">
                                                     <input
                                                         type="checkbox"
-                                                        checked={createForm.permissions.includes(p.id)}
-                                                        onChange={() => handleCreatePermissionChange(p.id)}
+                                                        checked={dialogForm.permissions.includes(p.id)}
+                                                        onChange={() => handleDialogPermissionChange(p.id)}
                                                     />
                                                     {p.name}
                                                 </label>
@@ -164,11 +180,11 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                                     </div>
                                     <DialogFooter>
                                         <Button type="submit" variant="default" size="default">
-                                            <Save size={16} /> Guardar
+                                            <Save size={16} /> {t('Save')}
                                         </Button>
                                         <DialogClose asChild>
                                             <Button type="button" variant="secondary" size="default">
-                                                <XCircle size={16} /> Cancelar
+                                                <XCircle size={16} /> {t('Cancel')}
                                             </Button>
                                         </DialogClose>
                                     </DialogFooter>
@@ -179,60 +195,14 @@ const RolesIndex: React.FC<Props> = ({ roles: initialRoles, permissions }) => {
                     <GenericTable
                         data={roles}
                         columns={[
-                            { key: 'name', label: 'Nome' },
-                            { key: 'permissions', label: 'Permissões', render: (role) => role.permissions.map((p) => p.name).join(', ') },
+                            { key: 'name', label: t('Name') },
+                            { key: 'permissions', label: t('Permissions'), render: (role) => role.permissions.map((p) => p.name).join(', ') },
                         ]}
                         actions={[
-                            { label: 'Editar', onClick: openEdit, className: 'bg-blue-500 hover:bg-blue-600' },
-                            { label: 'Apagar', onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
+                            { label: t('Edit'), onClick: (role) => { openEdit(role); setDialogMode('edit'); }, className: 'bg-blue-500 hover:bg-blue-600' },
+                            { label: t('Delete'), onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
                         ]}
                     />
-                    {/* Single reusable dialog */}«
-                    <Dialog
-                        modal={false}
-                        open={editOpen}
-                        onOpenChange={(open) => {
-                            if (!open) closeEdit();
-                        }}
-                    >
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Edit Role</DialogTitle>
-                                <DialogDescription>Update role and click "Save".</DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                                <div>
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input id="name" name="name" value={form.name} onChange={handleChange} required />
-                                </div>
-                                <div>
-                                    <Label>Permissions</Label>
-                                    <div className="mt-2 flex flex-wrap gap-2">
-                                        {permissions.map((p) => (
-                                            <label key={p.id} className="flex items-center gap-1">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={form.permissions.includes(p.id)}
-                                                    onChange={() => handlePermissionChange(p.id)}
-                                                />
-                                                {p.name}
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button type="submit" variant="default" size="default">
-                                        <Save size={16} /> Guardar
-                                    </Button>
-                                    <DialogClose asChild>
-                                        <Button type="button" variant="secondary" size="default">
-                                            <XCircle size={16} /> Cancelar
-                                        </Button>
-                                    </DialogClose>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </AppLayout>
         </>

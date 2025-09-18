@@ -33,7 +33,7 @@ export default function GenericTable<T>({ data, columns, actions = [] }: Generic
                             {col.label}
                         </th>
                     ))}
-                    {actions.length > 0 && <th className="px-6 py-3 text-center">Actions</th>}
+                    {actions.length > 0 && <th className="px-6 py-3 text-center">{t('Actions')}</th>}
                 </tr>
             </thead>
             <tbody>

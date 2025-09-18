@@ -14,10 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import axios from 'axios';
-import { Save, XCircle } from 'lucide-react';
+import { Plus, Save, XCircle } from 'lucide-react';
+
 import React, { useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from 'react-i18next';
 
 interface Permission {
     id: number;
@@ -101,93 +103,77 @@ const PermissionsIndex: React.FC<Props> = ({ permissions: initialPermissions }) 
         }
     };
 
+    const { t } = useTranslation();
+    const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
+    const isDialogOpen = createOpen || editOpen;
+    const closeDialog = () => {
+        setCreateOpen(false);
+        closeEdit();
+    };
+    const handleDialogSubmit = dialogMode === 'create' ? handleCreateSubmit : handleSubmit;
+    const dialogForm = dialogMode === 'create' ? createForm : form;
+    const handleDialogChange = dialogMode === 'create' ? handleCreateChange : handleChange;
+
+    function openCreate() {
+        setCreateForm({ name: '' });
+        setCreateOpen(true);
+    }
+
     return (
         <>
-            <AppLayout breadcrumbs={[{ title: 'Permissões', href: '/permissions' }]}>
+            <AppLayout breadcrumbs={[{ title: t('Permissions'), href: '/permissions' }]}> 
                 <div className="mx-auto max-w-7xl py-8 px-2 sm:px-4">
                     <div className="mb-6 flex items-center justify-between">
-                        <h1 className="text-3xl font-bold text-gray-800">Permissões</h1>
-                        <Dialog open={createOpen} onOpenChange={setCreateOpen} modal={false}>
+                        <h1 className="text-3xl font-bold text-gray-800">{t('Permissions')}</h1>
+                        <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) closeDialog(); }} modal={false}>
                             <DialogTrigger asChild>
-                                <button
-                                    className="rounded bg-green-600 px-4 py-2 font-semibold text-white transition hover:bg-green-700"
-                                    onClick={() => setCreateOpen(true)}
-                                >
-                                    Adicionar Permissão
-                                </button>
+                                    <Button onClick={() => { openCreate(); setDialogMode('create'); }} variant="default" size="default">
+                                        <Plus size={18} /> {t('Permission')}
+                                    </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Nova Permissão</DialogTitle>
-                                    <DialogDescription>Preencha o nome da permissão.</DialogDescription>
+                                    <DialogTitle>{dialogMode === 'create' ? t('New Permission') : t('Edit Permission')}</DialogTitle>
+                                    <DialogDescription>
+                                        {dialogMode === 'create' ? t('Fill in the permission name.') : t('Update the permission name.')}
+                                    </DialogDescription>
                                 </DialogHeader>
-                                <form onSubmit={handleCreateSubmit} className="mt-4 space-y-4">
+                                <form onSubmit={handleDialogSubmit} className="mt-4 space-y-4">
                                     <div>
-                                        <Label htmlFor="create-name">Nome</Label>
-                                        <Input id="create-name" name="name" value={createForm.name} onChange={handleCreateChange} required />
+                                        <Label htmlFor="name">{t('Name')}</Label>
+                                        <Input id="name" name="name" value={dialogForm.name} onChange={handleDialogChange} required autoFocus />
                                     </div>
                                     <DialogFooter>
                                         <Button type="submit" variant="default" size="default">
-                                            <Save size={16} /> Guardar
+                                            <Save size={16} /> {t('Save')}
                                         </Button>
                                         <DialogClose asChild>
                                             <Button type="button" variant="secondary" size="default">
-                                                <XCircle size={16} /> Cancelar
+                                                <XCircle size={16} /> {t('Cancel')}
                                             </Button>
                                         </DialogClose>
                                     </DialogFooter>
                                 </form>
                             </DialogContent>
                         </Dialog>
-                    </div>{' '}
+                    </div>
                     <GenericTable
                         data={permissions}
                         columns={[
                             {
                                 key: 'name',
-                                label: 'Permission Name',
+                                label: t('Name'),
                             },
                         ]}
                         actions={[
                             {
-                                label: 'Editar',
-                                onClick: (permission) => openEdit(permission),
+                                label: t('Edit'),
+                                onClick: (permission) => { openEdit(permission); setDialogMode('edit'); },
                                 className: 'bg-blue-500 hover:bg-blue-600',
                             },
-                            { label: 'Apagar', onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
+                            { label: t('Delete'), onClick: handleDelete, className: 'bg-red-500 hover:bg-red-600' },
                         ]}
                     />
-                    {/* Single reusable dialog */}
-                    <Dialog
-                        modal={false}
-                        open={editOpen}
-                        onOpenChange={(open) => {
-                            if (!open) closeEdit();
-                        }}
-                    >
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Editar Permissão</DialogTitle>
-                                <DialogDescription>Atualize o nome da permissão.</DialogDescription>
-                            </DialogHeader>
-                            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                                <div>
-                                    <Label htmlFor="edit-name">Nome</Label>
-                                    <Input id="edit-name" name="name" value={form.name} onChange={handleChange} required autoFocus />
-                                </div>
-                                <DialogFooter>
-                                    <Button type="submit" variant="default" size="default">
-                                        <Save size={16} /> Guardar
-                                    </Button>
-                                    <DialogClose asChild>
-                                        <Button type="button" variant="secondary" size="default">
-                                            <XCircle size={16} /> Cancelar
-                                        </Button>
-                                    </DialogClose>
-                                </DialogFooter>
-                            </form>
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </AppLayout>
         </>

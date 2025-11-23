@@ -60,5 +60,8 @@ class User extends Authenticatable
         return $this->getAllPermissions()->pluck('id')->toArray();
     }
 
-
+    public function favoritos()
+    {
+        return $this->belongsToMany(Favorito::class, 'favorito_user')->withTimestamps();
+    }
 }

@@ -1,8 +1,10 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[color,box-shadow] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -19,10 +21,14 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        create: "bg-green-500 text-white shadow-xs hover:bg-green-600",
+        edit: "bg-yellow-500 text-white shadow-xs hover:bg-yellow-600",
+        update: "bg-blue-500 text-white shadow-xs hover:bg-blue-600",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         sm: "h-8 rounded-md px-3 has-[>svg]:px-2.5",
+        xs: "h-6 rounded-md px-2 has-[>svg]:px-1.5 text-xs",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
       },
@@ -39,19 +45,34 @@ function Button({
   variant,
   size,
   asChild = false,
+  icon,
+  iconPosition = 'left',
+  children,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: React.PropsWithChildren<
+  React.ComponentProps<"button"> &
+    VariantProps<typeof buttonVariants> & {
+      asChild?: boolean
+      icon?: React.ReactNode
+      iconPosition?: 'left' | 'right'
+    }
+>) {
   const Comp = asChild ? Slot : "button"
+
+  // choose a sensible default icon for common variants when no explicit icon is provided
+  const resolvedIcon = icon ?? (
+    variant === 'create' ? <Plus /> : variant === 'edit' ? <Pencil /> : variant === 'delete' ? <Trash2 /> :variant === 'update' ? <Pencil /> : null)
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+    >
+      {resolvedIcon && iconPosition === 'left' ? <span className="inline-flex text-sm items-center">{resolvedIcon}</span> : null}
+      <span className="text-sm">{children}</span>
+      {resolvedIcon && iconPosition === 'right' ? <span className="inline-flex text-sm items-center">{resolvedIcon}</span> : null}
+    </Comp>
   )
 }
 

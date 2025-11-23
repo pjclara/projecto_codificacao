@@ -1,24 +1,19 @@
-
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import '@/lib/i18n';
+import i18n from '@/lib/i18n';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users, Shield } from 'lucide-react';
-import AppLogo from './app-logo';
-import '@/lib/i18n';
+import { BookOpen, ClipboardPlus, LayoutGrid, Shield, Users, PocketKnife, ListCheck, Folder, Star, FolderTree } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/lib/i18n';
-
+import AppLogo from './app-logo';
 
 const footerNavItems: NavItem[] = [];
 
-
 export function AppSidebar() {
-
-
     const { t } = useTranslation();
 
     const handleChangeLanguage = () => {
@@ -52,6 +47,58 @@ export function AppSidebar() {
         },
     ];
 
+    const cmsNavItems: NavItem[] = [
+        {
+            title: t('CMS ICD-10'),
+            href: '/cms',
+            icon: BookOpen,
+        },
+        {
+            title: t('Categorias'),
+            href: '/categories',
+            icon: Folder,
+        },
+        {
+            title: t('Secções'),
+            href: '/sections',
+            icon: FolderTree,
+        },
+    ];
+
+    const pcsNavItems: NavItem[] = [
+        {
+            title: t('PCS ICD-10'),
+            href: '/pcs',
+            icon: BookOpen,
+        },
+    ];
+
+    const commonNavItems: NavItem[] = [
+        {
+            title: t('Diagnósticos'),
+            href: '/diagnosticos',
+            icon: ClipboardPlus,
+        },
+        {
+            title: t('Procedimentos'),
+            href: '/procedimentos',
+            icon: PocketKnife,
+        },
+        {
+            title: t('Favoritos'),
+            href: '/favoritos',
+            icon: Star,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            title: t('Public Codes'),
+            href: '/welcome-alt',
+            icon: ListCheck,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -67,7 +114,7 @@ export function AppSidebar() {
                 {/* Botão para alternar idioma */}
                 <button
                     onClick={handleChangeLanguage}
-                    className="ml-4 px-2 py-1 rounded text-xs border border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+                    className="ml-4 rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
                     style={{ float: 'right' }}
                 >
                     {i18n.language === 'pt' ? 'EN' : 'PT'}
@@ -77,6 +124,9 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={platformNavItems} label={t('Platform')} />
                 <NavMain items={settingsNavItems} label={t('Settings')} />
+                <NavMain items={cmsNavItems} label={t('CMS')} />
+                <NavMain items={pcsNavItems} label={t('PCS')} />
+                <NavMain items={commonNavItems} label={t('Common')} />
             </SidebarContent>
 
             <SidebarFooter>

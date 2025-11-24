@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('procedimento_clinico_id')->constrained('procedimentos_clinicos')->onDelete('cascade');
             $table->foreignId('specialty_id')->constrained('specialties')->onDelete('cascade');
             $table->timestamps();
-            $table->unique(['procedimento_clinico_id', 'specialty_id']);
+            $table->unique(['procedimento_clinico_id', 'specialty_id'], 'proc_specialty_unique');
         });
     }
 

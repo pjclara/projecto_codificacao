@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('diagnostico_clinico_id')->constrained('diagnosticos_clinicos')->onDelete('cascade');
             $table->foreignId('specialty_id')->constrained('specialties')->onDelete('cascade');
             $table->timestamps();
-            $table->unique(['diagnostico_clinico_id', 'specialty_id']);
+            $table->unique(['diagnostico_clinico_id', 'specialty_id'], 'diag_specialty_unique');
         });
     }
 

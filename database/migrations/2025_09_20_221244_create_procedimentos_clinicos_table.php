@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->boolean('is_public')->default(false); // Indica se o procedimento é público
-            $table->text('notes')->nullable()->after('category');
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
 

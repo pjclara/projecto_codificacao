@@ -10,6 +10,7 @@ use App\Http\Controllers\IcdCodeCMSController;
 use App\Http\Controllers\IcdCodePCSController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\ProcedimentoController;
+use App\Http\Controllers\AIController;
 use App\Models\Category;
 
 Route::get('/user', function (Request $request) {
@@ -32,3 +33,6 @@ Route::apiResource('procedimentos', ProcedimentoController::class);
 Route::apiResource('categories', CategoryController::class);
 // specialties list for category creation
 Route::get('/specialties', [\App\Http\Controllers\SpecialtyController::class, 'index']);
+
+// AI Sugestões - Similaridade semântica com embeddings
+Route::post('/ai/sugerir', [AIController::class, 'sugerir']);

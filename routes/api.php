@@ -36,3 +36,6 @@ Route::get('/specialties', [\App\Http\Controllers\SpecialtyController::class, 'i
 
 // AI Sugestões - Similaridade semântica com embeddings
 Route::post('/ai/sugerir', [AIController::class, 'sugerir']);
+
+// AI-assisted coding analysis
+Route::post('/coding/analyze', [\App\Http\Controllers\CodingController::class, 'analyze']);
